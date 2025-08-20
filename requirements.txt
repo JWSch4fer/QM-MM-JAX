@@ -1,0 +1,15 @@
+# === CORE REQUIREMENTS ===
+numpy
+scipy
+pandas
+
+# === JAX (CPU or GPU) ===
+# You MUST manually install the right JAX wheel based on your system's CUDA version.
+# DO NOT uncomment more than one of these.
+
+# --- JAX CPU version (no GPU support) ---
+# jax[cpu] == 0.7.0
+
+# --- JAX CUDA 12 version ---
+# jax[cuda12_pip] == 0.7.0
+
