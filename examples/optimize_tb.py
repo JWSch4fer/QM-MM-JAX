@@ -12,7 +12,7 @@ from jqm import TightBinding, TBParams, optimize_geometry, LBFGSOptions
 
 
 def main():
-    # Small demo: H(1) - C(6) - H(1)
+    # Small demo: H(1) - C(8) - H(1)
     Z = jnp.array([1, 6, 1], dtype=jnp.int32)
     R0 = jnp.array(
         [[0.0, 0.0, -1.1], [0.0, 0.0, 0.0], [0.0, 0.0, 1.1]], dtype=jnp.float64

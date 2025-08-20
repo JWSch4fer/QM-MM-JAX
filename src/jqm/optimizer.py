@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import jax.numpy as jnp
 from jax import value_and_grad
 from jaxopt import LBFGS
+import jax
 
 from .qm_models.base import LBFGSOptions, QMModel
 
@@ -49,13 +50,17 @@ def optimize_geometry(
         return model.energy(R, Z, params)
 
     # L-BFGS solver (JIT by default)
+    jax.debug.print("{}", options)
+    jax.debug.print("{}", x0)
+
     solver = LBFGS(
         fun=energy_x,
-        value_and_grad=True,
+        value_and_grad=False,
         tol=options.gtol,  # gradient infinity-norm tol
         maxiter=options.maxiter,
         history_size=options.history_size,
         linesearch=options.linesearch,
+        has_aux=options.has_aux,
     )
 
     res = solver.run(x0)

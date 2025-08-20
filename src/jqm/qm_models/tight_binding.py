@@ -68,30 +68,40 @@ class TightBinding(QMModel):
 
     @staticmethod
     def _electronic_energy(H: jnp.ndarray, nelec: float, kT: float) -> jnp.ndarray:
-        # Diagonalize (symmetric) Hamiltonian
-        eps, _ = jnp.linalg.eigh(H)  # (M,)
+        # Eigenvalues (ascending)
+        eps, _ = jnp.linalg.eigh(H)
 
-        # Fermi-Dirac occupations with bisection for μ
+        # Fermi-Dirac occupations: occ = 1 / (1 + exp((eps - mu)/kT))
+        # -> numerically stable via sigmoid((mu - eps)/kT)
         def occ(mu):
-            return 1.0 / (1.0 + jnp.exp((eps - mu) / kT))
+            x = (mu - eps) / kT
+            return jax.nn.sigmoid(x)
 
-        def nelec_at(mu):
-            # spin degeneracy 2
+        def electrons(mu):
+            # factor 2 for spin degeneracy
             return 2.0 * jnp.sum(occ(mu))
 
+        # Bracket μ safely around spectrum
         mu_lo = eps[0] - 20.0
         mu_hi = eps[-1] + 20.0
 
         def body_fun(_, state):
             lo, hi = state
             mid = 0.5 * (lo + hi)
-            # if electron count at mid is too high, lower mu_hi
-            return (lo, mid) if nelec_at(mid) > nelec else (mid, hi)
+            # traced predicate, must stay in JAX:
+            cond = electrons(mid) > nelec
+            lo_new, hi_new = jax.lax.cond(
+                cond,
+                lambda _: (lo, mid),  # too many electrons -> lower hi
+                lambda _: (mid, hi),  # too few -> raise lo
+                operand=None,
+            )
+            return (lo_new, hi_new)
 
         lo, hi = jax.lax.fori_loop(0, 60, body_fun, (mu_lo, mu_hi))
         mu = 0.5 * (lo + hi)
         f = occ(mu)
-        return 2.0 * jnp.sum(f * eps)  # spin factor
+        return 2.0 * jnp.sum(f * eps)
 
     def energy(self, R: jnp.ndarray, Z: jnp.ndarray, params: TBParams) -> jnp.ndarray:
         _, r = self._pairwise(R)

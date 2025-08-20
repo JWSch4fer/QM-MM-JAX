@@ -28,3 +28,4 @@ class LBFGSOptions:
     history_size: int = 10
     # backtracking line search is fine for most TB systems
     linesearch: str = "backtracking"  # ("backtracking" | "zoom")
+    has_aux: bool = False

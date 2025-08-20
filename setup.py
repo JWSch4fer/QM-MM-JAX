@@ -15,14 +15,8 @@ setuptools.setup(
     install_requires=[
         "numpy",
         "pandas",
-        "requests",
         "scipy",
     ],
-    entry_points={
-        "console_scripts": [
-            "jqm=jqm.cli:main",  # makes `jqm` command run project.cli.main()
-        ],
-    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
